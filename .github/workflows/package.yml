@@ -1,0 +1,116 @@
+name: Package Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, xml, zip
+        tools: composer
+        
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+          
+    - name: Install PHP dependencies
+      run: composer install --no-dev --optimize-autoloader --no-interaction
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install Node.js dependencies
+      run: npm ci
+      if: hashFiles('package-lock.json') != ''
+      
+    - name: Build assets
+      run: npm run build
+      if: hashFiles('package-lock.json') != ''
+      
+    - name: Create build directory
+      run: mkdir -p build
+      
+    - name: Create plugin package
+      run: |
+        # Create temporary directory for packaging
+        TEMP_DIR=$(mktemp -d)
+        PLUGIN_DIR="vector-bridge-mvdb-indexer"
+        PACKAGE_DIR="${TEMP_DIR}/${PLUGIN_DIR}"
+        
+        # Create package structure
+        mkdir -p "${PACKAGE_DIR}"
+        
+        # Copy plugin files
+        cp -r src/ "${PACKAGE_DIR}/"
+        cp -r assets/ "${PACKAGE_DIR}/"
+        cp -r vendor/ "${PACKAGE_DIR}/"
+        
+        # Copy configuration and documentation files
+        cp vector-bridge-mvdb-indexer.php "${PACKAGE_DIR}/"
+        cp composer.json "${PACKAGE_DIR}/"
+        cp README.md "${PACKAGE_DIR}/"
+        cp INSTALLATION.md "${PACKAGE_DIR}/"
+        cp package.json "${PACKAGE_DIR}/"
+        
+        # Clean up development files from vendor
+        find "${PACKAGE_DIR}/vendor" -name "*.md" -type f -delete 2>/dev/null || true
+        find "${PACKAGE_DIR}/vendor" -name "*.txt" -type f -delete 2>/dev/null || true
+        find "${PACKAGE_DIR}/vendor" -name "LICENSE*" -type f -delete 2>/dev/null || true
+        find "${PACKAGE_DIR}/vendor" -name "CHANGELOG*" -type f -delete 2>/dev/null || true
+        find "${PACKAGE_DIR}/vendor" -name "phpunit.xml*" -type f -delete 2>/dev/null || true
+        find "${PACKAGE_DIR}/vendor" -name ".git*" -type f -delete 2>/dev/null || true
+        find "${PACKAGE_DIR}/vendor" -type d -name "test*" -exec rm -rf {} + 2>/dev/null || true
+        find "${PACKAGE_DIR}/vendor" -type d -name "Test*" -exec rm -rf {} + 2>/dev/null || true
+        find "${PACKAGE_DIR}/vendor" -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
+        find "${PACKAGE_DIR}/vendor" -type d -name "Tests" -exec rm -rf {} + 2>/dev/null || true
+        
+        # Create ZIP file
+        cd "${TEMP_DIR}"
+        zip -r "../build/vector-bridge-mvdb-indexer.zip" "${PLUGIN_DIR}" \
+          -x "*.git*" \
+          -x "*node_modules*" \
+          -x "*tests*" \
+          -x "*Tests*" \
+          -x "*.DS_Store" \
+          -x "*/.env*" \
+          -x "*/phpunit.xml*" \
+          -x "*/composer.lock"
+        
+        # Clean up
+        rm -rf "${TEMP_DIR}"
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: vector-bridge-mvdb-indexer
+        path: build/vector-bridge-mvdb-indexer.zip
+        
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/vector-bridge-mvdb-indexer.zip
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,351 @@
+/**
+ * Vector Bridge MVDB Indexer - Admin Styles
+ */
+
+/* Dashboard Layout */
+.vector-bridge-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+@media (max-width: 782px) {
+    .vector-bridge-dashboard {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Postbox Styling */
+.vector-bridge-dashboard .postbox {
+    margin-bottom: 20px;
+}
+
+.vector-bridge-dashboard .postbox .inside {
+    padding: 15px;
+}
+
+/* Action Groups */
+.vector-bridge-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.action-group {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #f9f9f9;
+}
+
+.action-group h3 {
+    margin: 0 0 8px 0;
+    color: #23282d;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.action-group p {
+    margin: 0 0 12px 0;
+    color: #666;
+    font-size: 13px;
+}
+
+/* Forms */
+.vector-bridge-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.vector-bridge-form input[type="url"],
+.vector-bridge-form input[type="text"],
+.vector-bridge-form input[type="file"] {
+    flex: 1;
+    min-width: 200px;
+}
+
+.vector-bridge-form button {
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    .vector-bridge-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .vector-bridge-form input {
+        min-width: auto;
+    }
+}
+
+/* Connection Status */
+#connection-status {
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+#connection-status.success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+#connection-status.error {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+#connection-status.loading {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}
+
+/* Dry Run Results */
+#dry-run-results {
+    margin-top: 20px;
+}
+
+.dry-run-result {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.dry-run-result h4 {
+    margin: 0 0 10px 0;
+    color: #23282d;
+}
+
+.dry-run-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.dry-run-stat {
+    text-align: center;
+    padding: 8px;
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.dry-run-stat .value {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0073aa;
+}
+
+.dry-run-stat .label {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.chunk-preview {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background: #f9f9f9;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Jobs Table */
+.vector-bridge-jobs table {
+    margin-top: 20px;
+}
+
+.vector-bridge-jobs .tablenav {
+    margin: 10px 0;
+}
+
+/* Status Indicators */
+.status-pending {
+    color: #f56e28;
+    font-weight: 600;
+}
+
+.status-complete {
+    color: #00a32a;
+    font-weight: 600;
+}
+
+.status-failed {
+    color: #d63638;
+    font-weight: 600;
+}
+
+.status-running {
+    color: #0073aa;
+    font-weight: 600;
+}
+
+/* Settings Page */
+.vector-bridge-settings-help {
+    margin-top: 30px;
+}
+
+.vector-bridge-settings-help .postbox {
+    margin-bottom: 20px;
+}
+
+.vector-bridge-settings-help .inside {
+    padding: 15px;
+}
+
+.vector-bridge-settings-help h3 {
+    margin: 0 0 10px 0;
+}
+
+.vector-bridge-settings-help ul,
+.vector-bridge-settings-help ol {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.vector-bridge-settings-help li {
+    margin-bottom: 5px;
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Button States */
+.button.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.button.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid #fff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Notices */
+.vector-bridge-notice {
+    padding: 10px 15px;
+    margin: 15px 0;
+    border-left: 4px solid #0073aa;
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.vector-bridge-notice.error {
+    border-left-color: #d63638;
+}
+
+.vector-bridge-notice.success {
+    border-left-color: #00a32a;
+}
+
+.vector-bridge-notice.warning {
+    border-left-color: #f56e28;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 782px) {
+    .vector-bridge-dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .dry-run-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .vector-bridge-form {
+        flex-direction: column;
+    }
+    
+    .vector-bridge-form input,
+    .vector-bridge-form button {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+}
+
+/* WordPress Admin Color Scheme Compatibility */
+.admin-color-light .action-group {
+    background: #f1f1f1;
+    border-color: #ccc;
+}
+
+.admin-color-blue .action-group {
+    background: #f1f3f5;
+    border-color: #c3c4c7;
+}
+
+/* Accessibility */
+.vector-bridge-form input:focus,
+.vector-bridge-form button:focus {
+    outline: 2px solid #0073aa;
+    outline-offset: 2px;
+}
+
+.screen-reader-text {
+    clip: rect(1px, 1px, 1px, 1px);
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+}
+
+/* Print Styles */
+@media print {
+    .vector-bridge-dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .button,
+    .vector-bridge-form {
+        display: none;
+    }
+    
+    .postbox {
+        break-inside: avoid;
+    }
+}

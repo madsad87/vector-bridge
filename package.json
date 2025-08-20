@@ -1,0 +1,33 @@
+{
+    "name": "vector-bridge-mvdb-indexer",
+    "version": "1.0.0",
+    "description": "WordPress plugin for ingesting external content into WP Engine's Managed Vector Database",
+    "main": "index.js",
+    "scripts": {
+        "build": "wp-scripts build",
+        "start": "wp-scripts start",
+        "lint:js": "wp-scripts lint-js",
+        "lint:css": "wp-scripts lint-style",
+        "format": "wp-scripts format",
+        "test": "wp-scripts test-unit-js",
+        "package": "bash scripts/package.sh"
+    },
+    "keywords": [
+        "wordpress",
+        "plugin",
+        "vector",
+        "database",
+        "mvdb",
+        "indexer"
+    ],
+    "author": "Madison Sadler",
+    "license": "GPL-2.0-or-later",
+    "devDependencies": {
+        "@wordpress/scripts": "^27.0.0"
+    },
+    "dependencies": {},
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=8.0.0"
+    }
+}
