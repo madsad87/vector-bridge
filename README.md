@@ -7,7 +7,7 @@ A WordPress plugin that provides an admin-only interface for ingesting external 
 - **URL/Sitemap Processing**: Extract content from URLs and sitemaps with robots.txt compliance
 - **File Upload Support**: Process PDF, DOCX, TXT, and MD files
 - **Intelligent Chunking**: Split content into manageable chunks with configurable overlap
-- **Background Processing**: Uses Action Scheduler for reliable background job processing
+- **Background Processing**: Uses WordPress Cron for reliable background job processing
 - **Dry Run Mode**: Preview chunking results with sample fixtures
 - **Connection Validation**: Test MVDB connectivity before processing
 - **Admin-Only Interface**: Secure access restricted to users with `manage_options` capability
@@ -81,14 +81,14 @@ Use the "Validate Connection" button to:
 
 ## Background Jobs
 
-The plugin uses Action Scheduler for reliable background processing:
+The plugin uses WordPress Cron for reliable background processing:
 
 - **Batch Processing**: Extracts and chunks content
 - **Document Indexing**: Indexes individual chunks into MVDB
 - **Rate Limiting**: Respects configured QPS limits
 - **Error Handling**: Logs failures for debugging
 
-View job status under **Vector Bridge > Jobs**.
+View job status under **Tools > Scheduled Events** or use a plugin like WP Crontrol to monitor WordPress cron jobs.
 
 ## Document IDs
 
@@ -108,11 +108,14 @@ Each indexed document includes metadata:
 
 ```json
 {
-  "origin": "vector-bridge",
-  "collection": "collection_name",
-  "source": "source_url_or_filename",
+  "post_title": "Extracted title or content preview",
+  "post_content": "Chunked content text",
+  "post_type": "collection_name",
+  "post_status": "publish",
+  "post_date": "2024-01-01T12:00:00+00:00",
   "chunk_index": 0,
-  "indexed_at": "2024-01-01 12:00:00",
+  "source_origin": "source_url_or_filename",
+  "indexed_by": "vector-bridge",
   "wordpress_site": "https://example.com",
   "tenant": "optional_tenant_id"
 }
@@ -136,7 +139,6 @@ Each indexed document includes metadata:
 ## Dependencies
 
 - **guzzlehttp/guzzle**: HTTP client for API calls
-- **woocommerce/action-scheduler**: Background job processing
 - **league/html-to-markdown**: HTML content cleaning
 - **smalot/pdfparser**: PDF text extraction
 - **phpoffice/phpword**: DOCX content extraction
@@ -255,15 +257,16 @@ composer cbf
 
 1. **Connection Failed**: Check MVDB endpoint URL and token
 2. **No Text Content**: Ensure files contain extractable text
-3. **Jobs Not Processing**: Verify Action Scheduler is working
+3. **Jobs Not Processing**: Check WordPress cron functionality
 4. **Rate Limiting**: Reduce QPS setting if getting throttled
+5. **Date Format Errors**: Plugin uses ISO 8601 format for MVDB compatibility
 
 ### Debug Information
 
 Enable WordPress debug logging and check:
 - PHP error logs
 - WordPress debug.log
-- Action Scheduler logs under **Tools > Scheduled Actions**
+- WordPress cron events under **Tools > Scheduled Events**
 
 ### Support
 
@@ -271,6 +274,7 @@ For issues related to:
 - **Plugin functionality**: Check WordPress admin notices and logs
 - **MVDB connectivity**: Verify endpoint and authentication
 - **File processing**: Ensure files are not corrupted or password-protected
+- **Background jobs**: Verify WordPress cron is functioning properly
 
 ## Changelog
 
@@ -279,10 +283,11 @@ For issues related to:
 - URL/Sitemap processing
 - File upload support (PDF, DOCX, TXT, MD)
 - Intelligent content chunking
-- Background job processing
+- WordPress Cron background processing
 - Dry run mode
 - Connection validation
 - Admin interface
+- Fixed date format compatibility with MVDB
 
 ## License
 
