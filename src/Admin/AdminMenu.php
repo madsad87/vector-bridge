@@ -53,15 +53,15 @@ class AdminMenu {
             [$this, 'renderSettingsPage']
         );
         
-        // Jobs submenu
-        add_submenu_page(
-            'vector-bridge',
-            __('Jobs', 'vector-bridge-mvdb-indexer'),
-            __('Jobs', 'vector-bridge-mvdb-indexer'),
-            'manage_options',
-            'vector-bridge-jobs',
-            [$this, 'renderJobsPage']
-        );
+        // Jobs submenu - Hidden for now (not needed for single URL processing)
+        // add_submenu_page(
+        //     'vector-bridge',
+        //     __('Jobs', 'vector-bridge-mvdb-indexer'),
+        //     __('Jobs', 'vector-bridge-mvdb-indexer'),
+        //     'manage_options',
+        //     'vector-bridge-jobs',
+        //     [$this, 'renderJobsPage']
+        // );
         
         // Content Browser submenu
         add_submenu_page(
@@ -126,12 +126,13 @@ class AdminMenu {
                                 </form>
                             </div>
                             
-                            <div class="action-group">
-                                <h3><?php esc_html_e('Upload File', 'vector-bridge-mvdb-indexer'); ?></h3>
+                            <div class="action-group under-construction">
+                                <h3><?php esc_html_e('Upload File', 'vector-bridge-mvdb-indexer'); ?> <span class="construction-badge"><?php esc_html_e('Under Construction', 'vector-bridge-mvdb-indexer'); ?></span></h3>
                                 <p><?php esc_html_e('Upload and process PDF, DOCX, TXT, or MD files. Content type will be automatically determined from the file extension.', 'vector-bridge-mvdb-indexer'); ?></p>
+                                <p class="construction-notice"><?php esc_html_e('Note: File upload functionality is currently under development. Please use URL processing for now.', 'vector-bridge-mvdb-indexer'); ?></p>
                                 <form id="file-form" class="vector-bridge-form" enctype="multipart/form-data">
-                                    <input type="file" id="file-input" accept=".pdf,.docx,.txt,.md" required>
-                                    <button type="submit" class="button button-primary">
+                                    <input type="file" id="file-input" accept=".pdf,.docx,.txt,.md" required disabled>
+                                    <button type="submit" class="button button-primary" disabled>
                                         <?php esc_html_e('Upload & Process', 'vector-bridge-mvdb-indexer'); ?>
                                     </button>
                                 </form>
@@ -140,20 +141,15 @@ class AdminMenu {
                     </div>
                 </div>
                 
-                <!-- Recent Jobs Card -->
+                <!-- Recent Activity Card -->
                 <div class="postbox">
                     <div class="postbox-header">
-                        <h2 class="hndle"><?php esc_html_e('Recent Jobs', 'vector-bridge-mvdb-indexer'); ?></h2>
+                        <h2 class="hndle"><?php esc_html_e('Recent Activity', 'vector-bridge-mvdb-indexer'); ?></h2>
                     </div>
                     <div class="inside">
-                        <div id="recent-jobs">
-                            <p><?php esc_html_e('Loading jobs...', 'vector-bridge-mvdb-indexer'); ?></p>
+                        <div id="recent-activity">
+                            <p><?php esc_html_e('URL processing activity will appear here...', 'vector-bridge-mvdb-indexer'); ?></p>
                         </div>
-                        <p>
-                            <a href="<?php echo esc_url(admin_url('admin.php?page=vector-bridge-jobs')); ?>" class="button button-secondary">
-                                <?php esc_html_e('View All Jobs', 'vector-bridge-mvdb-indexer'); ?>
-                            </a>
-                        </p>
                     </div>
                 </div>
                 

@@ -2,13 +2,26 @@
 
 A WordPress plugin that provides an admin-only interface for ingesting external content into WP Engine's Managed Vector Database (MVDB).
 
+## Current Status
+
+**✅ Working Features:**
+- URL/Sitemap processing with content extraction
+- Intelligent content chunking with configurable overlap
+- MVDB integration via GraphQL API
+- Connection validation and dry run testing
+- Admin interface with settings management
+
+**🚧 Under Development:**
+- File upload processing (PDF, DOCX, TXT, MD)
+- Content browser with document management
+- Background job queue system
+
 ## Features
 
-- **URL/Sitemap Processing**: Extract content from URLs and sitemaps with robots.txt compliance
-- **File Upload Support**: Process PDF, DOCX, TXT, and MD files
+- **URL Processing**: Extract content from web pages and sitemaps with robots.txt compliance
 - **Intelligent Chunking**: Split content into manageable chunks with configurable overlap
-- **Background Processing**: Uses WordPress Cron for reliable background job processing
-- **Dry Run Mode**: Preview chunking results with sample fixtures
+- **MVDB Integration**: Direct integration with WP Engine's Managed Vector Database via GraphQL
+- **Dry Run Mode**: Preview chunking results with sample fixtures without making MVDB calls
 - **Connection Validation**: Test MVDB connectivity before processing
 - **Admin-Only Interface**: Secure access restricted to users with `manage_options` capability
 
@@ -49,23 +62,16 @@ A WordPress plugin that provides an admin-only interface for ingesting external 
 ### Processing URLs
 
 1. Navigate to **Vector Bridge** in the WordPress admin
-2. Enter a URL in the "URL/Sitemap Processing" section
-3. Specify the collection name
-4. Click "Process URL"
+2. Enter a URL in the "URL Processing" section
+3. Click "Process URL"
 
 The plugin will:
 - Check robots.txt compliance
-- Extract and clean content
-- Split into chunks with configured overlap
-- Index each chunk into MVDB via background jobs
+- Extract and clean content using readability algorithms
+- Split content into chunks with configured overlap
+- Index each chunk into MVDB immediately
 
-### Uploading Files
-
-1. Select a file (PDF, DOCX, TXT, or MD)
-2. Specify the collection name
-3. Click "Upload & Process"
-
-### Dry Run Testing
+### Testing Configuration
 
 Use the "Dry Run with Fixtures" button to:
 - Test chunking configuration with sample content
@@ -79,16 +85,17 @@ Use the "Validate Connection" button to:
 - Verify authentication token
 - Check GraphQL schema availability
 
-## Background Jobs
+## Processing Method
 
-The plugin uses WordPress Cron for reliable background processing:
+The plugin currently processes URLs **synchronously** - one URL at a time without background queuing. This approach:
 
-- **Batch Processing**: Extracts and chunks content
-- **Document Indexing**: Indexes individual chunks into MVDB
-- **Rate Limiting**: Respects configured QPS limits
-- **Error Handling**: Logs failures for debugging
+- ✅ Provides immediate feedback
+- ✅ Simplifies error handling
+- ✅ Works reliably for single URL processing
+- ⚠️ May timeout on very large pages
+- ⚠️ Not suitable for bulk processing
 
-View job status under **Tools > Scheduled Events** or use a plugin like WP Crontrol to monitor WordPress cron jobs.
+Future versions will include background job processing for handling multiple URLs and large file uploads.
 
 ## Document IDs
 
@@ -129,19 +136,12 @@ Each indexed document includes metadata:
 - **Input Sanitization**: All user inputs properly sanitized
 - **Robots.txt Compliance**: Respects website crawling policies
 
-## Supported File Types
-
-- **PDF**: Text extraction using smalot/pdfparser
-- **DOCX**: Content extraction using phpoffice/phpword
-- **TXT**: Plain text files
-- **MD**: Markdown files
-
 ## Dependencies
 
 - **guzzlehttp/guzzle**: HTTP client for API calls
 - **league/html-to-markdown**: HTML content cleaning
-- **smalot/pdfparser**: PDF text extraction
-- **phpoffice/phpword**: DOCX content extraction
+- **smalot/pdfparser**: PDF text extraction (for future file upload feature)
+- **phpoffice/phpword**: DOCX content extraction (for future file upload feature)
 
 ## Build & Deploy
 
@@ -256,8 +256,8 @@ composer cbf
 ### Common Issues
 
 1. **Connection Failed**: Check MVDB endpoint URL and token
-2. **No Text Content**: Ensure files contain extractable text
-3. **Jobs Not Processing**: Check WordPress cron functionality
+2. **No Text Content**: Ensure URLs contain extractable text content
+3. **Processing Timeout**: Try smaller pages or increase PHP max_execution_time
 4. **Rate Limiting**: Reduce QPS setting if getting throttled
 5. **Date Format Errors**: Plugin uses ISO 8601 format for MVDB compatibility
 
@@ -266,28 +266,54 @@ composer cbf
 Enable WordPress debug logging and check:
 - PHP error logs
 - WordPress debug.log
-- WordPress cron events under **Tools > Scheduled Events**
+- Browser developer console for AJAX errors
 
 ### Support
 
 For issues related to:
 - **Plugin functionality**: Check WordPress admin notices and logs
 - **MVDB connectivity**: Verify endpoint and authentication
-- **File processing**: Ensure files are not corrupted or password-protected
-- **Background jobs**: Verify WordPress cron is functioning properly
+- **URL processing**: Ensure URLs are accessible and contain text content
+- **Performance**: Adjust chunk size and QPS settings
+
+## Planned Features
+
+### File Upload Processing
+- PDF text extraction
+- DOCX content extraction
+- TXT and MD file support
+- Drag-and-drop interface
+
+### Content Browser
+- Document search and filtering
+- Vector similarity search testing
+- Document management (view, delete)
+- Bulk operations
+
+### Background Processing
+- WordPress Cron integration for large jobs
+- Bulk URL processing
+- Progress tracking and notifications
+- Job retry mechanisms
+
+### Enhanced Analytics
+- Processing statistics
+- Performance metrics
+- Usage reporting
+- Error tracking
 
 ## Changelog
 
 ### 1.0.0
 - Initial release
-- URL/Sitemap processing
-- File upload support (PDF, DOCX, TXT, MD)
+- URL processing with content extraction
 - Intelligent content chunking
-- WordPress Cron background processing
-- Dry run mode
+- MVDB GraphQL integration
+- Dry run mode with sample fixtures
 - Connection validation
-- Admin interface
+- Admin interface with settings
 - Fixed date format compatibility with MVDB
+- Professional admin styling with "under construction" indicators
 
 ## License
 
