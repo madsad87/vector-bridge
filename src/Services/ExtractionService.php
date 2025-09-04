@@ -44,7 +44,8 @@ class ExtractionService {
         'pdf' => ['application/pdf'],
         'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         'txt' => ['text/plain'],
-        'md' => ['text/markdown', 'text/x-markdown']
+        'md' => ['text/markdown', 'text/x-markdown'],
+        'vtt' => ['text/vtt', 'text/plain']
     ];
     
     /**
@@ -151,6 +152,9 @@ class ExtractionService {
             
             case 'md':
                 return $this->extractFromMarkdown($file_path);
+            
+            case 'vtt':
+                return $this->extractFromVtt($file_path);
             
             default:
                 throw new \Exception(sprintf(
@@ -319,6 +323,39 @@ class ExtractionService {
         }
         
         return $this->cleanMarkdown($content);
+    }
+    
+    /**
+     * Extract content from VTT file
+     * 
+     * @param string $file_path Path to VTT file
+     * @return string Extracted text content
+     * @throws \Exception If extraction fails
+     */
+    private function extractFromVtt(string $file_path): string {
+        $vtt_service = new VttExtractionService();
+        
+        try {
+            $segments = $vtt_service->parseVttFile($file_path);
+            
+            if (empty($segments)) {
+                throw new \Exception(__('No content found in VTT file', 'vector-bridge-mvdb-indexer'));
+            }
+            
+            // Extract just the text content from all segments
+            $text_content = '';
+            foreach ($segments as $segment) {
+                $text_content .= $segment['text'] . ' ';
+            }
+            
+            return $this->cleanText($text_content);
+            
+        } catch (\Exception $e) {
+            throw new \Exception(sprintf(
+                __('Failed to extract VTT content: %s', 'vector-bridge-mvdb-indexer'),
+                $e->getMessage()
+            ));
+        }
     }
     
     /**
