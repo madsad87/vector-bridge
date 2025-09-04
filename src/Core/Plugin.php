@@ -108,6 +108,8 @@ class Plugin {
         add_action('wp_ajax_vector_bridge_validate_connection', [$this, 'handleValidateConnection']);
         add_action('wp_ajax_vector_bridge_dry_run', [$this, 'handleDryRun']);
         add_action('wp_ajax_vector_bridge_process_url', [$this, 'handleProcessUrl']);
+        add_action('wp_ajax_vector_bridge_process_file', [$this, 'handleProcessFile']);
+        add_action('wp_ajax_vector_bridge_process_video', [$this, 'handleProcessVideo']);
         add_action('wp_ajax_vector_bridge_upload_file', [$this, 'handleUploadFile']);
         add_action('wp_ajax_vector_bridge_get_jobs', [$this, 'handleGetJobs']);
         
@@ -119,7 +121,7 @@ class Plugin {
         add_action('wp_ajax_vector_bridge_delete_collection', [$this, 'handleDeleteCollection']);
         
         // Action Scheduler hooks
-        add_action('vector_bridge_process_content', [$this, 'processContent'], 10, 3);
+        add_action('vector_bridge_process_content', [$this, 'processContent'], 10, 4);
         add_action('vector_bridge_index_chunks', [$this, 'indexChunks'], 10, 2);
         
         // Add settings link to plugins page
@@ -310,6 +312,145 @@ class Plugin {
     }
     
     /**
+     * Handle AJAX request to process file (File tab)
+     * 
+     * @return void
+     */
+    public function handleProcessFile(): void {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'vector_bridge_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        // Check capabilities
+        if (!current_user_can('manage_options')) {
+            wp_die('Insufficient permissions');
+        }
+        
+        if (empty($_FILES['file'])) {
+            wp_send_json_error([
+                'message' => __('No file uploaded.', 'vector-bridge-mvdb-indexer')
+            ]);
+        }
+        
+        $collection = sanitize_text_field($_POST['collection'] ?? 'default');
+        $url_source = sanitize_url($_POST['url_source'] ?? '');
+        
+        try {
+            // Handle file upload
+            $uploaded_file = wp_handle_upload($_FILES['file'], ['test_form' => false]);
+            
+            if (isset($uploaded_file['error'])) {
+                throw new \Exception($uploaded_file['error']);
+            }
+            
+            // Prepare metadata for content type processing
+            $metadata = [
+                'url_source' => $url_source,
+                'original_filename' => $_FILES['file']['name'],
+                'file_type' => pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION)
+            ];
+            
+            // Schedule background job using WordPress cron
+            $job_id = wp_schedule_single_event(
+                time(),
+                'vector_bridge_process_content',
+                [$uploaded_file['file'], $collection, 'document', $metadata]
+            );
+            
+            if ($job_id === false) {
+                throw new \Exception('Failed to schedule WordPress cron event');
+            }
+            
+            wp_send_json_success([
+                'message' => __('File processing job scheduled successfully!', 'vector-bridge-mvdb-indexer'),
+                'job_id' => time(),
+                'filename' => basename($uploaded_file['file'])
+            ]);
+        } catch (\Exception $e) {
+            wp_send_json_error([
+                'message' => __('File processing failed: ', 'vector-bridge-mvdb-indexer') . $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
+     * Handle AJAX request to process video (Video tab)
+     * 
+     * @return void
+     */
+    public function handleProcessVideo(): void {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'vector_bridge_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        // Check capabilities
+        if (!current_user_can('manage_options')) {
+            wp_die('Insufficient permissions');
+        }
+        
+        $video_url = sanitize_url($_POST['video_url'] ?? '');
+        $collection = sanitize_text_field($_POST['collection'] ?? 'default');
+        $video_title = sanitize_text_field($_POST['video_title'] ?? '');
+        $speaker = sanitize_text_field($_POST['speaker'] ?? '');
+        $description = sanitize_textarea_field($_POST['description'] ?? '');
+        
+        if (empty($video_url)) {
+            wp_send_json_error([
+                'message' => __('Video URL is required.', 'vector-bridge-mvdb-indexer')
+            ]);
+        }
+        
+        if (empty($_FILES['vtt_file'])) {
+            wp_send_json_error([
+                'message' => __('VTT transcript file is required.', 'vector-bridge-mvdb-indexer')
+            ]);
+        }
+        
+        try {
+            // Handle VTT file upload
+            $uploaded_vtt = wp_handle_upload($_FILES['vtt_file'], ['test_form' => false]);
+            
+            if (isset($uploaded_vtt['error'])) {
+                throw new \Exception($uploaded_vtt['error']);
+            }
+            
+            // Prepare metadata for video processing
+            $metadata = [
+                'video_url' => $video_url,
+                'video_title' => $video_title,
+                'speaker' => $speaker,
+                'description' => $description,
+                'vtt_file' => $uploaded_vtt['file'],
+                'original_vtt_filename' => $_FILES['vtt_file']['name']
+            ];
+            
+            // Schedule background job using WordPress cron
+            $job_id = wp_schedule_single_event(
+                time(),
+                'vector_bridge_process_content',
+                [$uploaded_vtt['file'], $collection, 'video', $metadata]
+            );
+            
+            if ($job_id === false) {
+                throw new \Exception('Failed to schedule WordPress cron event');
+            }
+            
+            wp_send_json_success([
+                'message' => __('Video processing job scheduled successfully!', 'vector-bridge-mvdb-indexer'),
+                'job_id' => time(),
+                'video_url' => $video_url,
+                'vtt_filename' => basename($uploaded_vtt['file'])
+            ]);
+        } catch (\Exception $e) {
+            wp_send_json_error([
+                'message' => __('Video processing failed: ', 'vector-bridge-mvdb-indexer') . $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
      * Handle AJAX request to upload and process file
      * 
      * @return void
@@ -436,52 +577,78 @@ class Plugin {
      * 
      * @param string $source Source URL or file path
      * @param string $collection Collection name
-     * @param string $type Type: 'url' or 'file'
+     * @param string $type Type: 'url', 'file', 'document', or 'video'
+     * @param array $metadata Optional metadata for content processing
      * @return void
      */
-    public function processContent(string $source, string $collection, string $type): void {
+    public function processContent(string $source, string $collection, string $type, array $metadata = []): void {
         $job_id = 'process_' . time() . '_' . substr(md5($source), 0, 8);
         
         try {
             // Log job start
             $this->logJobStatus($job_id, 'vector_bridge_process_content', 'running', [
-                'source' => $type === 'file' ? basename($source) : $source,
+                'source' => in_array($type, ['file', 'document', 'video']) ? basename($source) : $source,
                 'collection' => $collection,
-                'type' => $type
+                'type' => $type,
+                'metadata' => $metadata
             ]);
             
             $extraction_service = $this->getService('extraction');
-            $chunking_service = $this->getService('chunking');
             
             // Extract content based on type
-            if ($type === 'url') {
-                $content = $extraction_service->extractFromUrl($source);
-            } else {
-                $content = $extraction_service->extractFromFile($source);
+            switch ($type) {
+                case 'url':
+                    $content = $extraction_service->extractFromUrl($source);
+                    $content_type = 'webpage';
+                    break;
+                    
+                case 'document':
+                case 'file':
+                    $content = $extraction_service->extractFromFile($source);
+                    $content_type = 'document';
+                    break;
+                    
+                case 'video':
+                    // For video, the source is the VTT file path
+                    $content = $extraction_service->extractFromVtt($source);
+                    $content_type = 'video';
+                    break;
+                    
+                default:
+                    throw new \Exception("Unsupported content type: {$type}");
             }
             
-            // Chunk the content
-            $chunks = $chunking_service->chunkContent($content);
+            // Use ContentTypeFactory to create appropriate builder
+            $factory = new \VectorBridge\MVDBIndexer\Services\ContentTypeFactory();
+            $builder = $factory->createDataBuilder($content_type);
+            
+            // Process content into chunks with appropriate data structure
+            $processed_chunks = [];
+            foreach ($content as $chunk) {
+                $document_data = $builder->buildDocumentData($chunk, $collection, $metadata);
+                $processed_chunks[] = $document_data;
+            }
             
             // Log processing completion
             $this->logJobStatus($job_id, 'vector_bridge_process_content', 'completed', [
-                'source' => $type === 'file' ? basename($source) : $source,
+                'source' => in_array($type, ['file', 'document', 'video']) ? basename($source) : $source,
                 'collection' => $collection,
                 'type' => $type,
-                'chunks_created' => count($chunks)
+                'content_type' => $content_type,
+                'chunks_created' => count($processed_chunks)
             ]);
             
             // Schedule indexing job using WordPress cron
             wp_schedule_single_event(
                 time(),
                 'vector_bridge_index_chunks',
-                [$chunks, $collection]
+                [$processed_chunks, $collection]
             );
             
         } catch (\Exception $e) {
             // Log job failure
             $this->logJobStatus($job_id, 'vector_bridge_process_content', 'failed', [
-                'source' => $type === 'file' ? basename($source) : $source,
+                'source' => in_array($type, ['file', 'document', 'video']) ? basename($source) : $source,
                 'collection' => $collection,
                 'type' => $type,
                 'error' => $e->getMessage()
