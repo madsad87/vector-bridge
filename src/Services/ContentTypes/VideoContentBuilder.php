@@ -2,7 +2,7 @@
 
 namespace VectorBridge\MVDBIndexer\Services\ContentTypes;
 
-use VectorBridge\MVDBIndexer\Services\ContentTypeBuilderInterface;
+use VectorBridge\MVDBIndexer\Services\Contracts\ContentTypeBuilderInterface;
 
 /**
  * Video Content Builder

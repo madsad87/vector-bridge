@@ -2,6 +2,7 @@
 
 namespace VectorBridge\MVDBIndexer\Services;
 
+use VectorBridge\MVDBIndexer\Services\Contracts\ExtractionServiceInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use League\HTMLToMarkdown\HtmlConverter;
@@ -11,10 +12,10 @@ use PhpOffice\PhpWord\Settings;
 
 /**
  * Extraction Service
- * 
+ *
  * Handles content extraction from various sources (URLs, files).
  */
-class ExtractionService {
+class ExtractionService implements ExtractionServiceInterface {
     
     /**
      * HTTP client

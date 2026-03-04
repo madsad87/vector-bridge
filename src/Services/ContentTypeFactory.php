@@ -2,6 +2,9 @@
 
 namespace VectorBridge\MVDBIndexer\Services;
 
+use VectorBridge\MVDBIndexer\Services\Contracts\ContentTypeBuilderInterface;
+use VectorBridge\MVDBIndexer\Services\Contracts\ChunkingServiceInterface;
+use VectorBridge\MVDBIndexer\Services\Contracts\ExtractionServiceInterface;
 use VectorBridge\MVDBIndexer\Services\ContentTypes\VideoContentBuilder;
 use VectorBridge\MVDBIndexer\Services\ContentTypes\DocumentContentBuilder;
 use VectorBridge\MVDBIndexer\Services\ContentTypes\WebpageContentBuilder;

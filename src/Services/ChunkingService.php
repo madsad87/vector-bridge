@@ -3,13 +3,14 @@
 namespace VectorBridge\MVDBIndexer\Services;
 
 use VectorBridge\MVDBIndexer\Admin\Settings;
+use VectorBridge\MVDBIndexer\Services\Contracts\ChunkingServiceInterface;
 
 /**
  * Chunking Service
- * 
+ *
  * Handles intelligent content chunking with configurable overlap.
  */
-class ChunkingService {
+class ChunkingService implements ChunkingServiceInterface {
     
     /**
      * Approximate tokens per character ratio

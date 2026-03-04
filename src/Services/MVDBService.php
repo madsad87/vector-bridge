@@ -3,16 +3,18 @@
 namespace VectorBridge\MVDBIndexer\Services;
 
 use VectorBridge\MVDBIndexer\Admin\Settings;
+use VectorBridge\MVDBIndexer\Services\Contracts\MVDBServiceInterface;
+use VectorBridge\MVDBIndexer\Support\Validation;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 
 /**
  * MVDB Service
- * 
+ *
  * Handles communication with WP Engine's Managed Vector Database via GraphQL.
  * Uses the correct API structure based on working RAG examples.
  */
-class MVDBService {
+class MVDBService implements MVDBServiceInterface {
     
     /**
      * HTTP client
@@ -518,12 +520,12 @@ class MVDBService {
     
     /**
      * Delete a single document by ID
-     * 
+     *
      * @param string $document_id Document ID
      * @return array Deletion result
      * @throws \Exception If deletion fails
      */
-    private function deleteDocument(string $document_id): array {
+    public function deleteDocument(string $document_id): array {
         $mutation = '
             mutation DeleteDocument($id: ID!, $meta: MetaInput) {
                 delete(id: $id, meta: $meta) {
@@ -695,16 +697,13 @@ class MVDBService {
     
     /**
      * Mask token for logging
-     * 
+     *
      * @param string $token Token to mask
      * @return string Masked token
+     * @deprecated Use Validation::maskToken() instead
      */
     private function maskToken(string $token): string {
-        if (strlen($token) <= 6) {
-            return str_repeat('*', strlen($token));
-        }
-        
-        return substr($token, 0, 6) . str_repeat('*', strlen($token) - 6);
+        return Validation::maskToken($token);
     }
     
     /**
@@ -764,28 +763,13 @@ class MVDBService {
     
     /**
      * Mask endpoint for display
-     * 
+     *
      * @param string $endpoint Endpoint URL
      * @return string Masked endpoint
+     * @deprecated Use Validation::maskEndpoint() instead
      */
     private function maskEndpoint(string $endpoint): string {
-        $parsed = parse_url($endpoint);
-        
-        if (!$parsed || !isset($parsed['host'])) {
-            return '***';
-        }
-        
-        $host = $parsed['host'];
-        $scheme = $parsed['scheme'] ?? 'https';
-        $path = $parsed['path'] ?? '';
-        
-        // Mask the middle part of the hostname
-        $host_parts = explode('.', $host);
-        if (count($host_parts) > 2) {
-            $host_parts[0] = substr($host_parts[0], 0, 3) . '***';
-        }
-        
-        return $scheme . '://' . implode('.', $host_parts) . $path;
+        return Validation::maskEndpoint($endpoint);
     }
     
     /**
